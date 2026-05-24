@@ -16,6 +16,7 @@ Thank you for your interest in contributing to Understand Anything! This documen
 
 - Node.js >= 22 (developed on v24)
 - pnpm >= 10 (pinned via `packageManager` field in root `package.json`)
+- Python 3 (for merge/normalize scripts — stdlib only, no pip deps)
 - Git for version control
 
 ### Setup
@@ -72,6 +73,12 @@ git checkout -b docs/update-readme     # For documentation
 pnpm --filter @understand-anything/core test
 pnpm --filter @understand-anything/skill test
 
+# Run Python tests (merge logic)
+python -m pytest understand-anything-plugin/skills/understand/test_merge_batch_graphs.py
+
+# Run harness integration tests
+bash harnesses/tests/test-harness.sh
+
 # Run linter
 pnpm lint
 
@@ -108,12 +115,47 @@ Then open a Pull Request on GitHub with:
 - Link to related issues (if any)
 - Screenshots (for UI changes)
 
+## 🏗️ Project Structure
+
+```
+understand-anything-plugin/
+├── packages/
+│   ├── core/              # Core analysis engine (@understand-anything/core)
+│   │   └── src/
+│   │       ├── plugins/extractors/  # Per-language tree-sitter extractors
+│   │       ├── plugins/parsers/     # Non-code file parsers
+│   │       ├── analyzer/            # Graph builder, layer detector, tours
+│   │       ├── persistence/         # File I/O
+│   │       └── languages/           # Language/framework registries
+│   └── dashboard/         # React dashboard (@understand-anything/dashboard)
+│       └── src/
+│           ├── components/  # React components
+│           ├── utils/       # Layout, filtering, aggregation
+│           ├── themes/      # CSS theming
+│           └── locales/     # i18n translations
+├── src/                   # Plugin skill implementations
+├── skills/                # Skill definitions (SKILL.md + scripts)
+└── package.json           # @understand-anything/skill
+harnesses/
+├── kiro/                  # Kiro CLI harness
+├── litellm/               # LiteLLM proxy client
+└── tests/                 # Integration tests
+```
+
+### Build Order
+
+Packages must be built in dependency order:
+1. `@understand-anything/core` (no internal deps)
+2. `@understand-anything/skill` (depends on core)
+3. `@understand-anything/dashboard` (depends on core)
+
 ## 🧪 Testing Guidelines
 
 ### Writing Tests
 
-- Use Vitest for testing
+- Use Vitest for TypeScript tests
 - Place tests in `__tests__` directories or `*.test.ts` files
+- Use `python -m pytest` for Python test files
 - Aim for high test coverage for new features
 - Test edge cases and error conditions
 
@@ -123,13 +165,8 @@ import { describe, it, expect } from 'vitest';
 
 describe('MyFeature', () => {
   it('should do something', () => {
-    // Arrange
     const input = 'test';
-
-    // Act
     const result = myFunction(input);
-
-    // Assert
     expect(result).toBe('expected');
   });
 });
@@ -138,25 +175,29 @@ describe('MyFeature', () => {
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all TypeScript tests
 pnpm test
 
 # Run tests for specific package
 pnpm --filter @understand-anything/core test
 
 # Run tests in watch mode
-pnpm --filter @understand-anything/core test --watch
+pnpm --filter @understand-anything/core test -- --watch
+
+# Run Python merge tests
+python -m pytest understand-anything-plugin/skills/understand/test_merge_batch_graphs.py -v
 ```
 
 ## 📚 Code Style Guidelines
 
 ### TypeScript
 
-- Use TypeScript strict mode
+- Use TypeScript strict mode (enforced by `tsconfig.json`)
 - Define explicit types for function parameters and return values
-- Avoid `any` type - use `unknown` if type is truly unknown
+- Avoid `any` type — use `unknown` if type is truly unknown
 - Use interfaces for object shapes
 - Use type aliases for unions and complex types
+- Target ES2022 with bundler module resolution
 
 ### Formatting
 
@@ -169,46 +210,40 @@ pnpm --filter @understand-anything/core test --watch
 
 - Use functional components with hooks
 - Keep components focused and single-purpose
-- Use Zustand for state management
+- Use Zustand for state management (single store pattern)
 - Follow the existing component structure
+- Use Tailwind CSS v4 for styling
+
+### Python Scripts
+
+- Use only Python standard library (no pip dependencies)
+- Follow existing patterns in `merge-batch-graphs.py`
+- Include type hints where practical
+- Test with `pytest`
 
 ### Tech Stack
 
-TypeScript, pnpm workspaces, React 18, Vite, TailwindCSS v4, React Flow, Zustand, web-tree-sitter, Fuse.js, Zod, Dagre
+TypeScript, pnpm workspaces, React 19, Vite 6, Tailwind CSS v4, ReactFlow 12, Zustand 5, web-tree-sitter, Fuse.js, Zod 4, ELK.js, Dagre
 
-### File Organization
+## 🔌 Adding a New Language Extractor
 
-```
-understand-anything-plugin/
-├── packages/
-│   ├── core/              # Core analysis engine
-│   │   ├── src/
-│   │   └── package.json
-│   └── dashboard/         # React dashboard
-│       ├── src/
-│       │   ├── components/
-│       │   ├── utils/
-│       │   └── store.ts
-│       └── package.json
-├── src/                   # Plugin skills implementation
-├── agents/                # AI agent prompts
-└── skills/                # Skill definitions
-```
+1. Create `packages/core/src/plugins/extractors/{lang}-extractor.ts` implementing `AnalyzerPlugin`
+2. Add tree-sitter grammar to `packages/core/package.json` dependencies
+3. Register in `packages/core/src/plugins/extractors/index.ts`
+4. Add language config in `packages/core/src/languages/configs/{lang}.ts`
+5. Register config in `packages/core/src/languages/configs/index.ts`
+6. Add grammar to `pnpm.onlyBuiltDependencies` in root `package.json`
+7. Write tests in `packages/core/src/plugins/extractors/__tests__/{lang}-extractor.test.ts`
 
 ## 🌍 Translation Guidelines
 
 ### Adding a New Language
 
-1. Create `README.{language-code}.md` (e.g., `README.fr-FR.md`)
-2. Translate all sections while maintaining formatting
-3. Update main `README.md` to include language link
-4. Keep technical terms in English where appropriate
-5. Ensure all links still work
-
-Example:
-```markdown
-<a href="README.md">English</a> | <a href="README.fr-FR.md">Français</a>
-```
+1. Create locale file in `packages/dashboard/src/locales/{code}.ts`
+2. Export all keys matching the `en.ts` structure
+3. Register in `packages/dashboard/src/locales/index.ts`
+4. Create `READMEs/README.{language-code}.md`
+5. Update main `README.md` to include language link
 
 ## 🐛 Bug Reports
 
@@ -256,18 +291,12 @@ Before submitting a PR, ensure:
 
 - **Issues**: For bugs and feature requests
 - **Discussions**: For questions and general discussion
+- **Discord**: [Join the community](https://discord.gg/pydat66RY)
 - **Documentation**: Check existing docs first
 
 ## 📄 License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
-
-## 🙏 Recognition
-
-Contributors will be recognized in:
-- GitHub contributors list
-- Release notes (for significant contributions)
-- Special mentions for exceptional contributions
 
 ---
 

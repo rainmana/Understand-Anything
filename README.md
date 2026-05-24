@@ -305,6 +305,97 @@ File analyzers run in parallel (up to 5 concurrent, 20-30 files per batch). Supp
 
 ---
 
+## 🆕 Recent Changes
+
+### Kiro CLI Support
+
+Full Kiro CLI integration via a standalone bash harness (`harnesses/kiro/run-understand.sh`). Run the entire analysis pipeline from Kiro without depending on Claude Code:
+
+```bash
+./harnesses/kiro/run-understand.sh /path/to/project
+```
+
+### LiteLLM Proxy Integration
+
+Provider-agnostic LLM support via [LiteLLM](https://github.com/BerriAI/litellm). Route inference to any OpenAI-compatible API — OpenAI, Anthropic, Mistral, Groq, Azure, or self-hosted models:
+
+```bash
+export LITELLM_BASE_URL=http://localhost:4000
+export LITELLM_MODEL=gpt-4o
+./harnesses/kiro/run-understand.sh /path/to/project
+```
+
+### LM Studio & Ollama Local Inference
+
+Run the pipeline entirely offline with local models — no API keys, no cloud dependency:
+
+```bash
+# LM Studio (localhost:1234)
+./harnesses/kiro/run-understand.sh /path/to/project --local
+
+# Ollama (localhost:11434)
+./harnesses/kiro/run-understand.sh /path/to/project --ollama llama3
+```
+
+### Structure-Only Mode
+
+Skip LLM entirely for instant results — get a full structural graph (functions, classes, imports, call graph) with zero inference cost:
+
+```bash
+./harnesses/kiro/run-understand.sh /path/to/project --no-llm
+```
+
+### Harness Test Suite
+
+Integration tests for all harness modes (`harnesses/tests/test-harness.sh`) covering LiteLLM, local inference, Ollama, and no-LLM execution paths.
+
+### Comprehensive Documentation
+
+Generated `.agents/summary/` documentation ecosystem with architecture diagrams, component maps, interface contracts, data model schemas, workflow guides, and dependency analysis. Plus consolidated `AGENTS.md` for AI coding assistants.
+
+---
+
+## 🔮 Future Improvements
+
+Ideas and enhancements we'd love to see (contributions welcome!):
+
+### Pipeline & Analysis
+- **Streaming progress** — real-time progress reporting during analysis (file count, current batch, ETA)
+- **Watch mode** — automatically re-analyze on file save, hot-reload the dashboard
+- **Parallel LLM calls** — batch multiple file summaries into concurrent LLM requests for faster enrichment
+- **Custom extractors via config** — define simple extractors in YAML/JSON without writing TypeScript
+- **Cross-repo analysis** — analyze multiple repos and visualize inter-service dependencies (microservices)
+
+### Language Support
+- **Swift extractor** — tree-sitter grammar exists, needs extractor implementation
+- **Kotlin extractor** — tree-sitter grammar exists, needs extractor implementation
+- **Lua extractor** — tree-sitter grammar exists, needs extractor implementation
+- **Zig / Elixir / Haskell** — community-requested languages
+
+### Dashboard & Visualization
+- **Time-travel view** — visualize how the graph evolved across git commits
+- **Collaboration mode** — shared annotations, bookmarks, and team notes on nodes
+- **Dependency vulnerability overlay** — highlight nodes with known CVEs
+- **Performance profiling overlay** — color nodes by runtime performance data
+- **3D graph mode** — WebGL-based 3D visualization for very large codebases
+- **Embeddable widget** — drop the graph into docs sites, Notion, or Confluence
+
+### LLM & Intelligence
+- **RAG-powered chat** — use embeddings over the graph for more accurate `/understand-chat` answers
+- **Auto-generated PR descriptions** — use diff analysis to draft PR summaries
+- **Architecture decision records** — detect and surface ADRs from the codebase
+- **Code smell detection** — identify circular dependencies, god classes, and coupling issues
+- **Suggested refactoring paths** — recommend how to break apart complex modules
+
+### Platform & Integration
+- **GitHub Action** — run the pipeline in CI and commit the graph automatically
+- **VS Code extension** — inline graph navigation without leaving the editor
+- **JetBrains plugin** — IntelliJ/WebStorm integration
+- **Slack/Teams bot** — ask questions about the codebase from chat
+- **API server mode** — serve the graph over HTTP for custom integrations
+
+---
+
 ## 🎥 Community
 
 A community-made walkthrough by **Better Stack**.
@@ -319,6 +410,24 @@ Made a video, blog post, or tutorial? Open an issue or PR — happy to feature i
 
 ---
 
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+| Language | TypeScript (strict, ES2022) |
+| Runtime | Node.js ≥ 22 |
+| Package Manager | pnpm 10 (workspace monorepo) |
+| Parsing | web-tree-sitter (10 language grammars) |
+| Frontend | React 19, Tailwind CSS v4, ReactFlow 12 |
+| State | Zustand 5 |
+| Layout | ELK.js, Dagre, d3-force |
+| Search | Fuse.js (fuzzy), cosine similarity (semantic) |
+| Validation | Zod 4 |
+| Test | Vitest |
+| Build | tsc (core), Vite 6 (dashboard) |
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Here's how to get started:
@@ -329,6 +438,8 @@ Contributions are welcome! Here's how to get started:
 4. Commit your changes and open a pull request
 
 Please open an issue first for major changes so we can discuss the approach.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup, coding standards, and guidelines.
 
 ---
 
