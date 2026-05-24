@@ -6,6 +6,8 @@
   <em>Works with Claude Code, Codex, Cursor, Copilot, Gemini CLI, and more.</em>
 </p>
 
+> **⚠️ Fork Notice:** This is [Rainmana's fork](https://github.com/rainmana/Understand-Anything) of [Lum1104/Understand-Anything](https://github.com/Lum1104/Understand-Anything). This fork focuses on **enterprise penetration testing, ethical security research, and offensive security workflows** — adding Kiro CLI support, provider-agnostic LLM integration (LiteLLM/LM Studio/Ollama), and standalone execution for security-focused environments where cloud-dependent tooling isn't viable.
+
 <p align="center">
   <a href="https://trendshift.io/repositories/23482" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23482" alt="Lum1104%2FUnderstand-Anything | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </p>
