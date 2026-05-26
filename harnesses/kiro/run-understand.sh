@@ -248,12 +248,14 @@ if [[ ! -f "$OUTPUT_DIR/knowledge-graph.json" ]]; then
       ? JSON.parse(fs.readFileSync('$OUTPUT_DIR/intermediate/project-summary.json', 'utf-8'))
       : {};
     const graph = {
+      version: '1.0.0',
       project: {
         name: require('path').basename('$PROJECT_DIR'),
         description: summary.description || 'Analyzed project',
         languages: [...new Set(structure.results.map(r => r.language))],
         frameworks: summary.frameworks || [],
         analyzedAt: new Date().toISOString(),
+        gitCommitHash: require('child_process').execSync('git rev-parse HEAD 2>/dev/null || echo unknown').toString().trim(),
       },
       nodes: structure.results.map(r => ({
         id: 'file:' + r.path,
