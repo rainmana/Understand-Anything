@@ -13,6 +13,7 @@
 # Options:
 #   --full            Force full rebuild
 #   --no-llm          Skip LLM-dependent steps (summaries, layers, tours)
+#   --dashboard       Auto-launch interactive dashboard after analysis
 #   --local           Use local LLM (LM Studio on localhost:1234)
 #   --ollama [MODEL]  Use Ollama (localhost:11434, default model: llama3)
 #   --language LANG   Language for generated content (default: en)
@@ -35,11 +36,13 @@ FULL_REBUILD=false
 NO_LLM=false
 LANGUAGE="en"
 LOCAL_PORT=""
+LAUNCH_DASHBOARD=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --full) FULL_REBUILD=true; shift ;;
     --no-llm) NO_LLM=true; shift ;;
+    --dashboard) LAUNCH_DASHBOARD=true; shift ;;
     --local)
       export LITELLM_BASE_URL="http://localhost:${LOCAL_PORT:-1234}"
       export LITELLM_API_KEY="${LITELLM_API_KEY:-lm-studio}"
@@ -301,3 +304,11 @@ echo "     cd $PLUGIN_ROOT/packages/dashboard && npx vite --open"
 echo ""
 echo "   Or from Kiro: /understand-dashboard"
 echo "═══════════════════════════════════════════════"
+
+# --- Auto-launch dashboard if requested ---
+if $LAUNCH_DASHBOARD; then
+  echo ""
+  echo "→ Launching dashboard..."
+  cd "$PLUGIN_ROOT/packages/dashboard"
+  GRAPH_FILE="$OUTPUT_DIR/knowledge-graph.json" npx vite --open
+fi
